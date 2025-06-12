@@ -1,3 +1,5 @@
+_G.espEnabled = true -- เปลี่ยนเป็น false เพื่อปิด
+
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
@@ -25,6 +27,13 @@ function createESP(player)
         nameTag.Parent = billboard
 
         RunService.RenderStepped:Connect(function()
+            if not _G.espEnabled then
+                billboard.Enabled = false
+                return
+            end
+
+            billboard.Enabled = true
+
             if not character:FindFirstChild("HumanoidRootPart") or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
 
             local distance = (character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
@@ -32,10 +41,7 @@ function createESP(player)
 
             local health = humanoid.Health
             local maxHealth = humanoid.MaxHealth
-            local healthRatio = math.clamp(health / maxHealth, 0, 1)
-
-            -- เมื่อเลือดลดลง สีจะยิ่งสว่างขึ้น (จากดำ → ขาว)
-            local brightness = 1 - healthRatio
+            local brightness = 1 - math.clamp(health / maxHealth, 0, 1)
             nameTag.TextColor3 = Color3.new(brightness, brightness, brightness)
         end)
     end
@@ -46,12 +52,8 @@ function createESP(player)
     player.CharacterAdded:Connect(onCharacterAdded)
 end
 
--- เริ่มสำหรับผู้เล่นทั้งหมด
 for _, player in pairs(Players:GetPlayers()) do
     createESP(player)
 end
 
--- รองรับผู้เล่นที่จอยเข้ามาใหม่
-Players.PlayerAdded:Connect(function(player)
-    createESP(player)
-end)
+Players.PlayerAdded:Connect(createESP)
