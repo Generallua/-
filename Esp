@@ -1,0 +1,57 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+function createESP(player)
+    if player == LocalPlayer then return end
+
+    local function onCharacterAdded(character)
+        local head = character:WaitForChild("Head")
+        local humanoid = character:WaitForChild("Humanoid")
+
+        local billboard = Instance.new("BillboardGui")
+        billboard.Name = "ESP"
+        billboard.Adornee = head
+        billboard.Size = UDim2.new(0, 100, 0, 20)
+        billboard.StudsOffset = Vector3.new(0, 2, 0)
+        billboard.AlwaysOnTop = true
+        billboard.Parent = head
+
+        local nameTag = Instance.new("TextLabel")
+        nameTag.Size = UDim2.new(1, 0, 1, 0)
+        nameTag.BackgroundTransparency = 1
+        nameTag.TextStrokeTransparency = 0
+        nameTag.TextScaled = true
+        nameTag.Parent = billboard
+
+        RunService.RenderStepped:Connect(function()
+            if not character:FindFirstChild("HumanoidRootPart") or not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then return end
+
+            local distance = (character.HumanoidRootPart.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+            nameTag.Text = string.format("%s (%.0f)", player.Name, distance)
+
+            local health = humanoid.Health
+            local maxHealth = humanoid.MaxHealth
+            local healthRatio = math.clamp(health / maxHealth, 0, 1)
+
+            -- เมื่อเลือดลดลง สีจะยิ่งสว่างขึ้น (จากดำ → ขาว)
+            local brightness = 1 - healthRatio
+            nameTag.TextColor3 = Color3.new(brightness, brightness, brightness)
+        end)
+    end
+
+    if player.Character then
+        onCharacterAdded(player.Character)
+    end
+    player.CharacterAdded:Connect(onCharacterAdded)
+end
+
+-- เริ่มสำหรับผู้เล่นทั้งหมด
+for _, player in pairs(Players:GetPlayers()) do
+    createESP(player)
+end
+
+-- รองรับผู้เล่นที่จอยเข้ามาใหม่
+Players.PlayerAdded:Connect(function(player)
+    createESP(player)
+end)
