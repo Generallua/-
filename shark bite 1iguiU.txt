@@ -5,35 +5,45 @@ local Players = game:GetService("Players")
 local PlaceId = game.PlaceId
 local JobId = game.JobId
 
-while true do
-    local servers = {}
-    local success, req = pcall(function()
-        return game:HttpGet("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true")
-    end)
+-- ฟังก์ชัน Serverhop อัตโนมัติ
+local function ServerHop()
+    while true do
+        local servers = {}
+        local success, req = pcall(function()
+            return game:HttpGet("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true")
+        end)
 
-    if success and req then
-        local body = HttpService:JSONDecode(req)
-        if body and body.data then
-            for i, v in next, body.data do
-                if type(v) == "table" and tonumber(v.playing) and tonumber(v.maxPlayers) and v.playing < v.maxPlayers and v.id ~= JobId then
-                    if v.playing <= 5 then
-                        table.insert(servers, 1, v.id)
+        if success and req then
+            local body = HttpService:JSONDecode(req)
+            if body and body.data then
+                for i, v in next, body.data do
+                    if type(v) == "table" 
+                       and tonumber(v.playing) 
+                       and tonumber(v.maxPlayers) 
+                       and v.playing < v.maxPlayers 
+                       and v.id ~= JobId 
+                       and v.playing > 5 then -- ข้ามเซิฟ ≤5 คน
+                        table.insert(servers, {id = v.id, players = tonumber(v.playing)})
                     end
                 end
             end
         end
-    end
 
-    if #servers > 0 then
-        local targetServer = servers[math.random(1, #servers)]
-        print("Serverhop -> Teleporting to server: "..targetServer)
-        TeleportService:TeleportToPlaceInstance(PlaceId, targetServer, Players.LocalPlayer)
-        break -- รอ teleport เสร็จแล้วออกจาก loop
-    else
-        print("Serverhop -> No server ≤5 players found, retrying in 5s...")
-        task.wait(5)
+        if #servers > 0 then
+            table.sort(servers, function(a, b) return a.players > b.players end)
+            local targetServer = servers[1].id
+            print("Serverhop -> Teleporting to server with "..servers[1].players.." players")
+            TeleportService:TeleportToPlaceInstance(PlaceId, targetServer, Players.LocalPlayer)
+            task.wait(5) -- รอ teleport เรียบร้อยแล้ววนต่อ
+        else
+            print("Serverhop -> No suitable server (>5 players) found, retrying in 5s...")
+            task.wait(5)
+        end
     end
 end
+
+-- เรียกใช้งาน
+spawn(ServerHop)
 
 loadstring(game:HttpGet("https://github.com/Generallua/Script.com/raw/refs/heads/main/Esp"))()
 
