@@ -14,8 +14,8 @@ spawn(function()
 end)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
+local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -132,6 +132,8 @@ local function runOnRespawn(func)
 end
 
 -- ปุ่มทั้งหมด
+
+-- safe zone
 createButton("safe zone", UDim2.new(0, 15, 0, 10), UDim2.new(0, 150, 0, 40),
 function()
     _G.Tp = true
@@ -154,6 +156,7 @@ function()
     end
 end)
 
+-- Shark (วาป + ล็อคตัว)
 createButton("Shark", UDim2.new(0, 15, 0, 60), UDim2.new(0, 150, 0, 40),
 function()
     _G.Shark = true
@@ -180,10 +183,9 @@ function()
                         end
                     end
                     if closest then
-                        camera.CFrame = CFrame.new(hrp.Position, closest.Position)
-                        TweenService:Create(hrp, TweenInfo.new(0.05, Enum.EasingStyle.Linear), {
-                            CFrame = CFrame.new(hrp.Position, Vector3.new(closest.Position.X, hrp.Position.Y, closest.Position.Z))
-                        }):Play()
+                        -- วาปทันที + ล็อคตัวไปที่ฉลาม
+                        hrp.CFrame = CFrame.new(hrp.Position, closest.Position)
+                        camera.CFrame = CFrame.new(camera.CFrame.Position, closest.Position)
                     end
                 end
             end
@@ -192,6 +194,7 @@ function()
 end,
 function() _G.Shark = false end)
 
+-- auto shoot
 createButton("auto shoot", UDim2.new(0, 15, 0, 110), UDim2.new(0, 150, 0, 40),
 function()
     _G.hit = true
@@ -216,13 +219,14 @@ function()
 end,
 function() _G.hit = false end)
 
+-- auto equip (รอ 2 วิ)
 createButton("auto equip", UDim2.new(0, 15, 0, 160), UDim2.new(0, 150, 0, 40),
 function()
     _G.hapoon = true
     runOnRespawn(function()
         spawn(function()
             while _G.hapoon do
-                wait(2) -- รอ 2 วิ ก่อนถือ
+                wait(2)
                 local backpack = player:FindFirstChild("Backpack")
                 if backpack and player.Character and player.Character:FindFirstChild("Humanoid") then
                     for _, tool in ipairs(backpack:GetChildren()) do
@@ -238,6 +242,7 @@ function()
 end,
 function() _G.hapoon = false end)
 
+-- inf
 createButton("inf", UDim2.new(0, 15, 0, 210), UDim2.new(0, 150, 0, 40),
 function()
     _G.inf = true
@@ -295,6 +300,4 @@ UserInputService.InputChanged:Connect(function(input)
         local newY = math.clamp(startPosFrame.Y.Offset + delta.Y, 0, workspace.CurrentCamera.ViewportSize.Y - mainFrame.Size.Y.Offset)
         mainFrame.Position = UDim2.new(0, newX, 0, newY)
     end
-end)
-
-                        
+end)            
