@@ -142,7 +142,7 @@ function()
     runOnRespawn(function()
         spawn(function()
             while _G.Tp do
-                wait(0.5)
+                wait(1)
                 if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                     player.Character.HumanoidRootPart.CFrame = CFrame.new(45.66, 251.29, 112.10)
                 end
@@ -152,7 +152,7 @@ function()
 end,
 function()
     _G.Tp = false
-    wait(0.7)
+    wait(1.5)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         player.Character.HumanoidRootPart.CFrame = CFrame.new(17.02, 285.92, -31.10)
     end
