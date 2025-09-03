@@ -261,6 +261,28 @@ function()
             while _G.inf do
                 wait(1)
                 local aux = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Upbolt/Hydroxide/revision/ohaux.lua"))()
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+local scriptPath = workspace:WaitForChild(player.Name):WaitForChild("Rifle").LocalScript
+
+local closureName = "Unnamed function"
+local upvalueIndex = 4
+local closureConstants = {
+    [1] = "Clone",
+    [2] = "game",
+    [3] = game,
+    [4] = "Players",
+    [5] = "LocalPlayer",
+    [6] = "PlayerGui"
+}
+
+local closure = aux.searchClosure(scriptPath, closureName, upvalueIndex, closureConstants)
+local value = 9e999
+
+debug.setupvalue(closure, upvalueIndex, value)
+
+local aux = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Upbolt/Hydroxide/revision/ohaux.lua"))()
                 local char = player.Character
                 if char and char:FindFirstChild("Harpoon") then
                     local harpoonScript = char.Harpoon:FindFirstChild("LocalScript")
