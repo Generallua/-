@@ -1,3 +1,108 @@
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local Players = game:GetService("Players")
+
+local PlaceId = game.PlaceId
+
+local function ServerHop()
+    while true do
+        local playerCount = #Players:GetPlayers() -- จำนวนคนในเซิฟเรา
+        if playerCount <= 5 then
+            local JobId = game.JobId -- อัพเดต JobId ปัจจุบัน
+            local servers = {}
+
+            local success, req = pcall(function()
+                return game:HttpGet("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true")
+            end)
+
+            if success and req then
+                local body = HttpService:JSONDecode(req)
+                if body and body.data then
+                    for _, v in pairs(body.data) do
+                        if type(v) == "table" then
+                            local playing = tonumber(v.playing or 0)
+                            local maxPlayers = tonumber(v.maxPlayers or 0)
+                            local id = v.id
+                            if id and playing and maxPlayers and playing < maxPlayers and playing > 5 and id ~= JobId then
+                                table.insert(servers, {id = id, players = playing})
+                            end
+                        end
+                    end
+                end
+            end
+
+            if #servers > 0 then
+                -- เลือกเซิฟคนเยอะที่สุด
+                table.sort(servers, function(a,b) return a.players > b.players end)
+                local target = servers[1].id
+                print("Serverhop -> Teleporting to server with "..servers[1].players.." players")
+                TeleportService:TeleportToPlaceInstance(PlaceId, target, Players.LocalPlayer)
+                task.wait(5)
+            else
+                print("Serverhop -> No suitable server (>5 players & has space), retrying in 3s...")
+                task.wait(3)
+            end
+        else
+            -- ถ้ายังมีผู้เล่น >5 คนในเซิฟเรา รอ 5 วินาทีแล้วเช็คใหม่
+            task.wait(5)
+        end
+    end
+end
+
+spawn(ServerHop)
+
+loadstring(game:HttpGet("https://github.com/Generallua/Script.com/raw/refs/heads/main/Esp"))()
+
+local fileName = "AutoRejoin.txt"
+
+-- ฟังก์ชันอ่านค่าไฟล์
+local function readValue()
+    if pcall(function() readfile(fileName) end) then
+        local content = readfile(fileName)
+        return content == "true"
+    else
+        return true -- ค่าตั้งต้นถ้าไม่มีไฟล์
+    end
+end
+
+-- ตั้งค่า _G.AutoRejoin
+if _G.AutoRejoin == nil then
+    _G.AutoRejoin = readValue()
+end
+
+-- ฟังก์ชันบันทึกค่า
+local function saveValue()
+    writefile(fileName, tostring(_G.AutoRejoin))
+end
+
+-- ตัวอย่างเช็คทีมและรีจอย
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local player = Players.LocalPlayer
+
+local function checkTeam()
+    if _G.AutoRejoin and player.Team and player.Team.Name == "Shark" then
+        TeleportService:Teleport(game.PlaceId, player)
+    end
+end
+
+-- ตรวจสอบทันที
+checkTeam()
+
+-- ตรวจสอบหลังเกิดใหม่
+player.CharacterAdded:Connect(function()
+    task.wait(1)
+    checkTeam()
+end)
+
+-- ตรวจสอบทุกวินาที
+spawn(function()
+    while true do
+        task.wait(1)
+        checkTeam()
+    end
+end)
+
 local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
 local UserInputService = game:GetService("UserInputService")
