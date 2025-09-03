@@ -1,10 +1,23 @@
 loadstring(game:HttpGet("https://github.com/Generallua/Script.com/raw/refs/heads/main/Esp"))()
+
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local player = Players.LocalPlayer
+
+
+if not pcall(function() readfile("Sharkout") end) then
+    writefile("Sharkout", "true")
+end
+
 spawn(function()
     while _G.Sharkout do
         task.wait(1)
         if player.Team and player.Team.Name == "Shark" then
             TeleportService:Teleport(game.PlaceId, player)
         end
+        
+        local status = readfile("Sharkout")
+        _G.Sharkout = status == "true"
     end
 end)
 
