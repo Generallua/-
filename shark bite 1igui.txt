@@ -256,7 +256,7 @@ function()
             task.wait(1)
             for _, item in ipairs(player.Backpack:GetChildren()) do
                 if item:FindFirstChild("WeaponDisplay") and item.WeaponDisplay:FindFirstChild("MobileAim") then
-                    task.wait(2)
+                    task.wait(20)
                     if player.Character and player.Character:FindFirstChild("Humanoid") then
                         player.Character.Humanoid:EquipTool(item)
                     end
