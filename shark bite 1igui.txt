@@ -275,8 +275,8 @@ for _, item in ipairs(char:GetChildren()) do
         end
     end
 end
-        end)
-    end)
+        
+
 end,
 function() _G.inf = false end)
 
