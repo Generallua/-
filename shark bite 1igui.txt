@@ -1,9 +1,4 @@
 loadstring(game:HttpGet("https://github.com/Generallua/Script.com/raw/refs/heads/main/Esp"))()
-
-local Players = game:GetService("Players")
-local TeleportService = game:GetService("TeleportService")
-local player = Players.LocalPlayer
-
 spawn(function()
     while _G.Sharkout do
         task.wait(1)
@@ -13,8 +8,8 @@ spawn(function()
     end
 end)
 
-
 local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
@@ -131,13 +126,24 @@ local function runOnRespawn(func)
     player.CharacterAdded:Connect(runner)
 end
 
+-- Shark Teleport
+spawn(function()
+    while _G.Sharkout do
+        task.wait(1)
+        if player.Team and player.Team.Name == "Shark" then
+            TeleportService:Teleport(game.PlaceId, player)
+        end
+    end
+end)
+
+-- Buttons
 createButton("safe zone", UDim2.new(0, 15, 0, 10), UDim2.new(0, 150, 0, 40),
 function()
     _G.Tp = true
     runOnRespawn(function()
         spawn(function()
             while _G.Tp do
-                wait(1)
+                task.wait(1)
                 if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                     player.Character.HumanoidRootPart.CFrame = CFrame.new(45.66, 251.29, 112.10)
                 end
@@ -147,7 +153,7 @@ function()
 end,
 function()
     _G.Tp = false
-    wait(1.5)
+    task.wait(1.5)
     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
         player.Character.HumanoidRootPart.CFrame = CFrame.new(17.02, 285.92, -31.10)
     end
@@ -159,42 +165,44 @@ function()
     runOnRespawn(function()
         spawn(function()
             while _G.Shark do
-                wait(0)
+                task.wait(0)
                 local char = player.Character
-                if not char or not char:FindFirstChild("HumanoidRootPart") then continue end
-                local hrp = char.HumanoidRootPart
-                local camera = workspace.CurrentCamera
-                local targetPos = Vector3.new(6, 306, 16)
-                if player.Team and player.Team.Name == "Survivor" then
-                    local sharks = workspace:WaitForChild("Sharks"):GetChildren()
-                    local validSharks = {}
-                    for _, shark in ipairs(sharks) do
-                        if shark:IsA("Model") then
-                            local mainPart = shark.PrimaryPart or shark:FindFirstChildWhichIsA("BasePart")
-                            if mainPart and (mainPart.Position - targetPos).Magnitude <= 10000 then
-                                table.insert(validSharks, mainPart)
+                if char and char:FindFirstChild("HumanoidRootPart") then
+                    local hrp = char.HumanoidRootPart
+                    local camera = workspace.CurrentCamera
+                    local targetPos = Vector3.new(6, 306, 16)
+                    if player.Team and player.Team.Name == "Survivor" then
+                        local sharks = workspace:WaitForChild("Sharks"):GetChildren()
+                        local validSharks = {}
+                        for _, shark in ipairs(sharks) do
+                            if shark:IsA("Model") then
+                                local mainPart = shark.PrimaryPart or shark:FindFirstChildWhichIsA("BasePart")
+                                if mainPart and (mainPart.Position - targetPos).Magnitude <= 10000 then
+                                    table.insert(validSharks, mainPart)
+                                end
                             end
                         end
-                    end
-                    local canMove = true
-                    for i = 1, #validSharks-1 do
-                        for j = i+1, #validSharks do
-                            if (validSharks[i].Position - validSharks[j].Position).Magnitude < 200 then
-                                canMove = false
-                                break
+                        local canMove = true
+                        for i = 1, #validSharks-1 do
+                            for j = i+1, #validSharks do
+                                if (validSharks[i].Position - validSharks[j].Position).Magnitude < 200 then
+                                    canMove = false
+                                    break
+                                end
+                            end
+                            if not canMove then break end
+                        end
+                        if canMove and #validSharks > 0 then
+                            local closest, dist = nil, math.huge
+                            for _, part in ipairs(validSharks) do
+                                local d = (part.Position - targetPos).Magnitude
+                                if d < dist then dist = d; closest = part end
+                            end
+                            if closest then
+                                camera.CFrame = CFrame.new(camera.CFrame.Position, closest.Position)
+                                TweenService:Create(hrp, TweenInfo.new(1/9299, Enum.EasingStyle.Linear), {CFrame = closest.CFrame * CFrame.new(0,25,-30)}):Play()
                             end
                         end
-                        if not canMove then break end
-                    end
-                    if not canMove or #validSharks == 0 then continue end
-                    local closest, dist = nil, math.huge
-                    for _, part in ipairs(validSharks) do
-                        local d = (part.Position - targetPos).Magnitude
-                        if d < dist then dist = d; closest = part end
-                    end
-                    if closest then
-                        camera.CFrame = CFrame.new(camera.CFrame.Position, closest.Position)
-                        TweenService:Create(hrp, TweenInfo.new(1/9299, Enum.EasingStyle.Linear), {CFrame = closest.CFrame * CFrame.new(0,25,-30)}):Play()
                     end
                 end
             end
@@ -209,7 +217,7 @@ function()
     runOnRespawn(function()
         spawn(function()
             while _G.hit do
-                wait(0.05)
+                task.wait(0.05)
                 local gui = player:FindFirstChild("PlayerGui")
                 if gui and gui:FindFirstChild("WeaponDisplay") then
                     local btn = gui.WeaponDisplay.Frame:FindFirstChild("ShootButton")
@@ -230,25 +238,19 @@ function() _G.hit = false end)
 createButton("auto equip", UDim2.new(0, 15, 0, 160), UDim2.new(0, 150, 0, 40),
 function()
     _G.hapoon = true
-    runOnRespawn(function()
-        spawn(function()
-            while _G.hapoon do
-                wait(15)
-                local backpack = player:FindFirstChild("Backpack")
-                local char = player.Character
-                if backpack and char and char:FindFirstChild("Humanoid") then
-                    for _, tool in ipairs(backpack:GetChildren()) do
-                        if tool:IsA("Tool") and tool.Name:lower():find("harpoon") then
-                            wait(2)
-                            if char:FindFirstChild("Humanoid") then
-                                char.Humanoid:EquipTool(tool)
-                            end
-                            break
-                        end
+    spawn(function()
+        while _G.hapoon do
+            task.wait(1)
+            for _, item in ipairs(player.Backpack:GetChildren()) do
+                if item:FindFirstChild("WeaponDisplay") and item.WeaponDisplay:FindFirstChild("MobileAim") then
+                    task.wait(2)
+                    if player.Character and player.Character:FindFirstChild("Humanoid") then
+                        player.Character.Humanoid:EquipTool(item)
                     end
+                    break
                 end
             end
-        end)
+        end
     end)
 end,
 function() _G.hapoon = false end)
@@ -259,27 +261,16 @@ function()
     runOnRespawn(function()
         spawn(function()
             while _G.inf do
-                wait(1)
-                local player = game.Players.LocalPlayer
-local aux = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Upbolt/Hydroxide/revision/ohaux.lua"))()
-  
-createButton("inf", UDim2.new(0, 15, 0, 210), UDim2.new(0, 150, 0, 40),
-function()
-    _G.inf = true
-    runOnRespawn(function()
-        spawn(function()
-            while _G.inf do
                 task.wait(1)
-                local char = player.Character
-                if not char then continue end
-
+                local aux = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Upbolt/Hydroxide/revision/ohaux.lua"))()
+                local char = player.Character or player.CharacterAdded:Wait()
                 for _, item in ipairs(char:GetChildren()) do
                     if item:IsA("Tool") then
                         local localScript = item:FindFirstChildWhichIsA("LocalScript")
                         if localScript then
                             local closure = aux.searchClosure(localScript, "reload", 4, {"Enum","UserInputState","Cancel",Enum.UserInputState.Cancel,1,"script"})
                             if closure then
-                                debug.setupvalue(closure, 4, 9e999) 
+                                debug.setupvalue(closure, 4, 9e999)
                             end
                         end
                     end
@@ -288,8 +279,9 @@ function()
         end)
     end)
 end,
-1e9nction() _G.inf = false end)
+function() _G.inf = false end)
 
+-- GUI toggle
 local collapsed = false
 toggleButton.MouseButton1Click:Connect(function()
     collapsed = not collapsed
@@ -297,6 +289,7 @@ toggleButton.MouseButton1Click:Connect(function()
     mainFrame.Size = collapsed and UDim2.new(0, 180, 0, 30) or UDim2.new(0, 180, 0, 280)
 end)
 
+-- Drag GUI
 local dragging, dragInput, startPos, startPosFrame = false, nil, nil, nil
 local function startDrag(input)
     dragging = true
