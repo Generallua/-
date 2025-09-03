@@ -199,7 +199,7 @@ function()
                     end
                     if closest then
                         camera.CFrame = CFrame.new(camera.CFrame.Position, closest.Position)
-                        TweenService:Create(hrp, TweenInfo.new(1/929, Enum.EasingStyle.Linear), {CFrame = closest.CFrame * CFrame.new(0,25,-30)}):Play()
+                        TweenService:Create(hrp, TweenInfo.new(1/9299, Enum.EasingStyle.Linear), {CFrame = closest.CFrame * CFrame.new(0,25,-30)}):Play()
                     end
                 end
             end
@@ -214,7 +214,7 @@ function()
     runOnRespawn(function()
         spawn(function()
             while _G.hit do
-                wait(0.05)
+                wait(0.005)
                 local gui = player:FindFirstChild("PlayerGui")
                 if gui and gui:FindFirstChild("WeaponDisplay") then
                     local btn = gui.WeaponDisplay.Frame:FindFirstChild("ShootButton")
@@ -238,7 +238,7 @@ function()
     runOnRespawn(function()
         spawn(function()
             while _G.hapoon do
-                wait(2)
+                wait(5)
                 local backpack = player:FindFirstChild("Backpack")
                 if backpack and player.Character and player.Character:FindFirstChild("Humanoid") then
                     for _, tool in ipairs(backpack:GetChildren()) do
