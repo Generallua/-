@@ -14,14 +14,13 @@ spawn(function()
 end)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
-local RunService = game:GetService("RunService")
 
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local filename = "sharkbite1script"
 
--- โหลดสถานะปุ่มจากไฟล์
 local statusData = {}
 if pcall(function() readfile(filename) end) then
     local content = readfile(filename)
@@ -83,7 +82,6 @@ bodyFrame.Position = UDim2.new(0, 0, 0, 30)
 bodyFrame.BackgroundTransparency = 1
 bodyFrame.Parent = mainFrame
 
--- ฟังก์ชันบันทึกสถานะปุ่ม
 local function saveStatus(name, value)
     statusData[name] = value
     writefile(filename, HttpService:JSONEncode(statusData))
@@ -131,9 +129,6 @@ local function runOnRespawn(func)
     player.CharacterAdded:Connect(runner)
 end
 
--- ปุ่มทั้งหมด
-
--- safe zone
 createButton("safe zone", UDim2.new(0, 15, 0, 10), UDim2.new(0, 150, 0, 40),
 function()
     _G.Tp = true
@@ -156,36 +151,48 @@ function()
     end
 end)
 
--- Shark (วาป + ล็อคตัว)
 createButton("Shark", UDim2.new(0, 15, 0, 60), UDim2.new(0, 150, 0, 40),
 function()
     _G.Shark = true
     runOnRespawn(function()
         spawn(function()
             while _G.Shark do
-                task.wait()
+                wait(0)
                 local char = player.Character
                 if not char or not char:FindFirstChild("HumanoidRootPart") then continue end
                 local hrp = char.HumanoidRootPart
                 local camera = workspace.CurrentCamera
                 local targetPos = Vector3.new(6, 306, 16)
-
                 if player.Team and player.Team.Name == "Survivor" then
                     local sharks = workspace:WaitForChild("Sharks"):GetChildren()
-                    local closest, dist = nil, math.huge
+                    local validSharks = {}
                     for _, shark in ipairs(sharks) do
                         if shark:IsA("Model") then
                             local mainPart = shark.PrimaryPart or shark:FindFirstChildWhichIsA("BasePart")
                             if mainPart and (mainPart.Position - targetPos).Magnitude <= 10000 then
-                                local d = (mainPart.Position - targetPos).Magnitude
-                                if d < dist then dist = d; closest = mainPart end
+                                table.insert(validSharks, mainPart)
                             end
                         end
                     end
+                    local canMove = true
+                    for i = 1, #validSharks-1 do
+                        for j = i+1, #validSharks do
+                            if (validSharks[i].Position - validSharks[j].Position).Magnitude < 200 then
+                                canMove = false
+                                break
+                            end
+                        end
+                        if not canMove then break end
+                    end
+                    if not canMove or #validSharks == 0 then continue end
+                    local closest, dist = nil, math.huge
+                    for _, part in ipairs(validSharks) do
+                        local d = (part.Position - targetPos).Magnitude
+                        if d < dist then dist = d; closest = part end
+                    end
                     if closest then
-                        -- วาปทันที + ล็อคตัวไปที่ฉลาม
-                        hrp.CFrame = CFrame.new(hrp.Position, closest.Position)
                         camera.CFrame = CFrame.new(camera.CFrame.Position, closest.Position)
+                        TweenService:Create(hrp, TweenInfo.new(1/9299, Enum.EasingStyle.Linear), {CFrame = closest.CFrame * CFrame.new(0,25,-30)}):Play()
                     end
                 end
             end
@@ -194,7 +201,6 @@ function()
 end,
 function() _G.Shark = false end)
 
--- auto shoot
 createButton("auto shoot", UDim2.new(0, 15, 0, 110), UDim2.new(0, 150, 0, 40),
 function()
     _G.hit = true
@@ -219,19 +225,22 @@ function()
 end,
 function() _G.hit = false end)
 
--- auto equip (รอ 2 วิ)
 createButton("auto equip", UDim2.new(0, 15, 0, 160), UDim2.new(0, 150, 0, 40),
 function()
     _G.hapoon = true
     runOnRespawn(function()
         spawn(function()
             while _G.hapoon do
-                wait(2)
+                wait(1)
                 local backpack = player:FindFirstChild("Backpack")
-                if backpack and player.Character and player.Character:FindFirstChild("Humanoid") then
+                local char = player.Character
+                if backpack and char and char:FindFirstChild("Humanoid") then
                     for _, tool in ipairs(backpack:GetChildren()) do
                         if tool:IsA("Tool") and tool.Name:lower():find("harpoon") then
-                            player.Character.Humanoid:EquipTool(tool)
+                            wait(2)
+                            if char:FindFirstChild("Humanoid") then
+                                char.Humanoid:EquipTool(tool)
+                            end
                             break
                         end
                     end
@@ -242,7 +251,6 @@ function()
 end,
 function() _G.hapoon = false end)
 
--- inf
 createButton("inf", UDim2.new(0, 15, 0, 210), UDim2.new(0, 150, 0, 40),
 function()
     _G.inf = true
@@ -265,7 +273,6 @@ function()
 end,
 function() _G.inf = false end)
 
--- ปุ่มย่อ/ขยาย GUI
 local collapsed = false
 toggleButton.MouseButton1Click:Connect(function()
     collapsed = not collapsed
@@ -273,7 +280,6 @@ toggleButton.MouseButton1Click:Connect(function()
     mainFrame.Size = collapsed and UDim2.new(0, 180, 0, 30) or UDim2.new(0, 180, 0, 280)
 end)
 
--- ลาก GUI ได้
 local dragging, dragInput, startPos, startPosFrame = false, nil, nil, nil
 local function startDrag(input)
     dragging = true
@@ -300,4 +306,4 @@ UserInputService.InputChanged:Connect(function(input)
         local newY = math.clamp(startPosFrame.Y.Offset + delta.Y, 0, workspace.CurrentCamera.ViewportSize.Y - mainFrame.Size.Y.Offset)
         mainFrame.Position = UDim2.new(0, newX, 0, newY)
     end
-end)            
+endbackpack                             
