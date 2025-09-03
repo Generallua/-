@@ -238,7 +238,7 @@ function()
     runOnRespawn(function()
         spawn(function()
             while _G.hapoon do
-                wait(0.1)
+                wait(2)
                 local backpack = player:FindFirstChild("Backpack")
                 if backpack and player.Character and player.Character:FindFirstChild("Humanoid") then
                     for _, tool in ipairs(backpack:GetChildren()) do
