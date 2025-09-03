@@ -1,20 +1,17 @@
 loadstring(game:HttpGet("https://github.com/Generallua/Script.com/raw/refs/heads/main/Esp"))()
 
-if _G.Sharkout then
-    local Players = game:GetService("Players")
+local Players = game:GetService("Players")
 local TeleportService = game:GetService("TeleportService")
 local player = Players.LocalPlayer
 
 spawn(function()
-    while true do
-        wait(1)
+    while _G.Sharkout do
+        task.wait(1)
         if player.Team and player.Team.Name == "Shark" then
             TeleportService:Teleport(game.PlaceId, player)
-            break
         end
     end
 end)
-end
 
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
