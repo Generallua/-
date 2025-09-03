@@ -260,18 +260,21 @@ function()
         spawn(function()
             while _G.inf do
                 wait(1)
-                
-
+                local player = game.Players.LocalPlayer
 local aux = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Upbolt/Hydroxide/revision/ohaux.lua"))()
-                local char = player.Character
-                if char and char:FindFirstChild("Harpoon") then
-                    local harpoonScript = char.Harpoon:FindFirstChild("LocalScript")
-                    if harpoonScript then
-                        local closure = aux.searchClosure(harpoonScript, "reload", 4, {"Enum","UserInputState","Cancel",Enum.UserInputState.Cancel,1,"script"})
-                        debug.setupvalue(closure, 4, 9e999)
-                    end
-                end
+local char = player.Character or player.CharacterAdded:Wait()
+
+for _, item in ipairs(char:GetChildren()) do
+    if item:IsA("Tool") then  -- ตรวจสอบว่าเป็น Tool หรือไอเท็ม
+        local localScript = item:FindFirstChildWhichIsA("LocalScript")
+        if localScript then
+            local closure = aux.searchClosure(localScript, "reload", 4, {"Enum","UserInputState","Cancel",Enum.UserInputState.Cancel,1,"script"})
+            if closure then
+                debug.setupvalue(closure, 4, 9e999)
             end
+        end
+    end
+end
         end)
     end)
 end,
