@@ -89,7 +89,7 @@ screenGui.Parent = CoreGui
 screenGui.ResetOnSpawn = false
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 220, 0, 400)
+mainFrame.Size = UDim2.new(0, 220, 0, 370)
 mainFrame.Position = UDim2.new(0, 50, 0, 50)
 mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 mainFrame.BorderSizePixel = 0
@@ -364,7 +364,7 @@ local collapsed = false
 toggleButton.MouseButton1Click:Connect(function()
     collapsed = not collapsed
     bodyFrame.Visible = not collapsed
-    mainFrame.Size = collapsed and UDim2.new(0,220,0,40) or UDim2.new(0,220,0,400)
+    mainFrame.Size = collapsed and UDim2.new(0,220,0,40) or UDim2.new(0,220,0,370)
 end)
 
 -- Drag GUI ไม่ออกนอกหน้าจอ
