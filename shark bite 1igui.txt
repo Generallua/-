@@ -262,23 +262,33 @@ function()
                 wait(1)
                 local player = game.Players.LocalPlayer
 local aux = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Upbolt/Hydroxide/revision/ohaux.lua"))()
-local char = player.Character or player.CharacterAdded:Wait()
+  
+createButton("inf", UDim2.new(0, 15, 0, 210), UDim2.new(0, 150, 0, 40),
+function()
+    _G.inf = true
+    runOnRespawn(function()
+        spawn(function()
+            while _G.inf do
+                task.wait(1)
+                local char = player.Character
+                if not char then continue end
 
-for _, item in ipairs(char:GetChildren()) do
-    if item:IsA("Tool") then  -- ตรวจสอบว่าเป็น Tool หรือไอเท็ม
-        local localScript = item:FindFirstChildWhichIsA("LocalScript")
-        if localScript then
-            local closure = aux.searchClosure(localScript, "reload", 4, {"Enum","UserInputState","Cancel",Enum.UserInputState.Cancel,1,"script"})
-            if closure then
-                debug.setupvalue(closure, 4, 9e999)
+                for _, item in ipairs(char:GetChildren()) do
+                    if item:IsA("Tool") then
+                        local localScript = item:FindFirstChildWhichIsA("LocalScript")
+                        if localScript then
+                            local closure = aux.searchClosure(localScript, "reload", 4, {"Enum","UserInputState","Cancel",Enum.UserInputState.Cancel,1,"script"})
+                            if closure then
+                                debug.setupvalue(closure, 4, 9e999) 
+                            end
+                        end
+                    end
+                end
             end
-        end
-    end
-end
-        
-
+        end)
+    end)
 end,
-function() _G.inf = false end)
+1e9nction() _G.inf = false end)
 
 local collapsed = false
 toggleButton.MouseButton1Click:Connect(function()
