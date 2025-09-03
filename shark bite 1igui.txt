@@ -209,7 +209,7 @@ function()
     runOnRespawn(function()
         spawn(function()
             while _G.hit do
-                wait(0.005)
+                wait(0.05)
                 local gui = player:FindFirstChild("PlayerGui")
                 if gui and gui:FindFirstChild("WeaponDisplay") then
                     local btn = gui.WeaponDisplay.Frame:FindFirstChild("ShootButton")
