@@ -230,7 +230,7 @@ function()
     runOnRespawn(function()
         spawn(function()
             while _G.hit do
-                task.wait(0.08)
+                task.wait(0.07)
                 local gui = player:FindFirstChild("PlayerGui")
                 if gui and gui:FindFirstChild("WeaponDisplay") then
                     local btn = gui.WeaponDisplay.Frame:FindFirstChild("ShootButton")
@@ -253,10 +253,10 @@ function()
     _G.hapoon = true
     spawn(function()
         while _G.hapoon do
-            task.wait(1)
+            task.wait(0.1)
             for _, item in ipairs(player.Backpack:GetChildren()) do
                 if item:FindFirstChild("WeaponDisplay") and item.WeaponDisplay:FindFirstChild("MobileAim") then
-                    task.wait(20)
+                    task.wait(15)
                     if player.Character and player.Character:FindFirstChild("Humanoid") then
                         player.Character.Humanoid:EquipTool(item)
                     end
