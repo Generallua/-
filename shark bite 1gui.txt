@@ -12,7 +12,6 @@ spawn(function()
         end
     end
 end)
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -161,42 +160,30 @@ function()
     runOnRespawn(function()
         spawn(function()
             while _G.Shark do
-                wait(0)
+                task.wait()
                 local char = player.Character
                 if not char or not char:FindFirstChild("HumanoidRootPart") then continue end
                 local hrp = char.HumanoidRootPart
                 local camera = workspace.CurrentCamera
                 local targetPos = Vector3.new(6, 306, 16)
+
                 if player.Team and player.Team.Name == "Survivor" then
                     local sharks = workspace:WaitForChild("Sharks"):GetChildren()
-                    local validSharks = {}
+                    local closest, dist = nil, math.huge
                     for _, shark in ipairs(sharks) do
                         if shark:IsA("Model") then
                             local mainPart = shark.PrimaryPart or shark:FindFirstChildWhichIsA("BasePart")
                             if mainPart and (mainPart.Position - targetPos).Magnitude <= 10000 then
-                                table.insert(validSharks, mainPart)
+                                local d = (mainPart.Position - targetPos).Magnitude
+                                if d < dist then dist = d; closest = mainPart end
                             end
                         end
-                    end
-                    local canMove = true
-                    for i = 1, #validSharks-1 do
-                        for j = i+1, #validSharks do
-                            if (validSharks[i].Position - validSharks[j].Position).Magnitude < 200 then
-                                canMove = false
-                                break
-                            end
-                        end
-                        if not canMove then break end
-                    end
-                    if not canMove or #validSharks == 0 then continue end
-                    local closest, dist = nil, math.huge
-                    for _, part in ipairs(validSharks) do
-                        local d = (part.Position - targetPos).Magnitude
-                        if d < dist then dist = d; closest = part end
                     end
                     if closest then
-                        camera.CFrame = CFrame.new(camera.CFrame.Position, closest.Position)
-                        TweenService:Create(hrp, TweenInfo.new(1/9299, Enum.EasingStyle.Linear), {CFrame = closest.CFrame * CFrame.new(0,25,-30)}):Play()
+                        camera.CFrame = CFrame.new(hrp.Position, closest.Position)
+                        TweenService:Create(hrp, TweenInfo.new(0.05, Enum.EasingStyle.Linear), {
+                            CFrame = CFrame.new(hrp.Position, Vector3.new(closest.Position.X, hrp.Position.Y, closest.Position.Z))
+                        }):Play()
                     end
                 end
             end
@@ -235,7 +222,7 @@ function()
     runOnRespawn(function()
         spawn(function()
             while _G.hapoon do
-                wait(5)
+                wait(2) -- รอ 2 วิ ก่อนถือ
                 local backpack = player:FindFirstChild("Backpack")
                 if backpack and player.Character and player.Character:FindFirstChild("Humanoid") then
                     for _, tool in ipairs(backpack:GetChildren()) do
@@ -281,6 +268,7 @@ toggleButton.MouseButton1Click:Connect(function()
     mainFrame.Size = collapsed and UDim2.new(0, 180, 0, 30) or UDim2.new(0, 180, 0, 280)
 end)
 
+-- ลาก GUI ได้
 local dragging, dragInput, startPos, startPosFrame = false, nil, nil, nil
 local function startDrag(input)
     dragging = true
@@ -308,3 +296,5 @@ UserInputService.InputChanged:Connect(function(input)
         mainFrame.Position = UDim2.new(0, newX, 0, newY)
     end
 end)
+
+                        
