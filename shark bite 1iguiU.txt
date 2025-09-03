@@ -1,3 +1,17 @@
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local player = Players.LocalPlayer
+
+spawn(function()
+    while true do
+        task.wait(5) -- ตรวจสอบทุก 5 วินาที
+        if #Players:GetPlayers() <= 5 then
+            TeleportService:Teleport(game.PlaceId, player)
+            break
+        end
+    end
+end)
+
 loadstring(game:HttpGet("https://github.com/Generallua/Script.com/raw/refs/heads/main/Esp"))()
 
 local fileName = "AutoRejoin.txt"
