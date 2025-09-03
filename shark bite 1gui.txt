@@ -306,4 +306,4 @@ UserInputService.InputChanged:Connect(function(input)
         local newY = math.clamp(startPosFrame.Y.Offset + delta.Y, 0, workspace.CurrentCamera.ViewportSize.Y - mainFrame.Size.Y.Offset)
         mainFrame.Position = UDim2.new(0, newX, 0, newY)
     end
-endbackpack                             
+end)
