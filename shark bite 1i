@@ -102,7 +102,7 @@ local function runOnRespawn(func)
 end
 
 -- ยิงรัว interval ค่า default
-local shootIntervalValue = statusData["shootInterval"] or 0.07
+local shootIntervalValue = statusData["shootInterval"] or 0.1
 
 -- ปุ่มสร้าง
 local function createButton(name, onOpenFunc, onCloseFunc)
@@ -131,7 +131,7 @@ local function createButton(name, onOpenFunc, onCloseFunc)
 end
 
 -- Safe zone
-createButton("safe zone",
+createButton("afk safe zone",
 function()
     _G.Tp = true
     runOnRespawn(function()
@@ -206,7 +206,7 @@ end)
 
 -- Shark
 -- Shark
-createButton("Shark",
+createButton("Farm shark",
 function()
     _G.Shark = true
     runOnRespawn(function()
@@ -422,12 +422,4 @@ UserInputService.InputChanged:Connect(function(input)
 end)
 
 -- Shark auto teleport
-_G.Sharkout = true
-spawn(function()
-    while _G.Sharkout do
-        task.wait(1)
-        if player.Team and player.Team.Name == "Shark" then
-            TeleportService:Teleport(game.PlaceId, player)
-        end
-    end
-end)
+
