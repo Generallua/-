@@ -1,0 +1,486 @@
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+local CoreGui = game:GetService("CoreGui")
+
+
+local player = Players.LocalPlayer
+local filename = "sharkbite1script"
+
+
+local statusData = {}
+if pcall(function() readfile(filename) end) then
+    local content = readfile(filename)
+    if content ~= "" then
+        statusData = HttpService:JSONDecode(content)
+    end
+end
+
+
+local function saveStatus(name, value)
+    statusData[name] = value
+    writefile(filename, HttpService:JSONEncode(statusData))
+end
+
+
+if CoreGui:FindFirstChild("CompactGUI") then
+    CoreGui.CompactGUI:Destroy()
+end
+
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "CompactGUI"
+screenGui.Parent = CoreGui
+screenGui.ResetOnSpawn = false
+
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 220, 0, 440)
+mainFrame.Position = UDim2.new(0, 50, 0, 50)
+mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 12)
+
+
+local stroke = Instance.new("UIStroke", mainFrame)
+stroke.Color = Color3.fromRGB(120, 150, 255)
+stroke.Thickness = 2
+
+
+local header = Instance.new("Frame")
+header.Size = UDim2.new(1, 0, 0, 40)
+header.BackgroundColor3 = Color3.fromRGB(45, 45, 60)
+header.BorderSizePixel = 0
+header.Parent = mainFrame
+Instance.new("UICorner", header).CornerRadius = UDim.new(0, 12)
+
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -40, 1, 0)
+title.Position = UDim2.new(0, 40, 0, 0)
+title.BackgroundTransparency = 1
+title.Text = "Shark Bite1"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.Font = Enum.Font.GothamBold
+title.TextSize = 18
+title.Parent = header
+
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 40, 1, 0)
+toggleButton.Position = UDim2.new(0, 0, 0, 0)
+toggleButton.BackgroundColor3 = Color3.fromRGB(70, 80, 120)
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.TextSize = 18
+toggleButton.Text = "≡"
+toggleButton.Parent = header
+Instance.new("UICorner", toggleButton).CornerRadius = UDim.new(0, 12)
+
+
+local bodyFrame = Instance.new("Frame")
+bodyFrame.Size = UDim2.new(1, -20, 1, -60)
+bodyFrame.Position = UDim2.new(0, 10, 0, 50)
+bodyFrame.BackgroundTransparency = 0.1
+bodyFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 55)
+bodyFrame.Parent = mainFrame
+
+
+local layout = Instance.new("UIListLayout", bodyFrame)
+layout.Padding = UDim.new(0, 10)
+layout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+
+local function runOnRespawn(func)
+    local function runner(character)
+        func()
+    end
+    if player.Character then runner(player.Character) end
+    player.CharacterAdded:Connect(runner)
+end
+
+
+local shootIntervalValue = statusData["shootInterval"] or 0.2
+
+
+local function createButton(name, onOpenFunc, onCloseFunc)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Size = UDim2.new(1, 0, 0, 40)
+    button.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 16
+    button.Parent = bodyFrame
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 8)
+
+
+    local toggled = statusData[name] or false
+    button.Text = name .. (toggled and ": ON" or ": OFF")
+
+
+    button.MouseButton1Click:Connect(function()
+        toggled = not toggled
+        button.Text = name .. (toggled and ": ON" or ": OFF")
+        saveStatus(name, toggled)
+        if toggled and onOpenFunc then onOpenFunc()
+        elseif not toggled and onCloseFunc then onCloseFunc() end
+    end)
+
+
+    if toggled and onOpenFunc then onOpenFunc() end
+end
+
+
+createButton("afk safe zone",
+function()
+    _G.Tp = true
+    runOnRespawn(function()
+        spawn(function()
+            while _G.Tp do
+                task.wait(0)
+                local HttpService = game:GetService("HttpService")
+                local TeleportService = game:GetService("TeleportService")
+                local Players = game:GetService("Players")
+
+
+                local player = Players.LocalPlayer
+                local PlaceId = game.PlaceId
+
+
+                local AutoRejoin = true
+
+
+                local function serverHopOnce()
+                    local playerCount = #Players:GetPlayers()
+                    if playerCount <= 5 then
+                        local JobId = game.JobId
+                        local servers = {}
+                        local success, req = pcall(function()
+                            return game:HttpGet("https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Desc&limit=100&excludeFullGames=true")
+                        end)
+                        if success and req then
+                            local body = HttpService:JSONDecode(req)
+                            if body and body.data then
+                                for _, v in pairs(body.data) do
+                                    if type(v) == "table" then
+                                        local playing = tonumber(v.playing or 0)
+                                        local maxPlayers = tonumber(v.maxPlayers or 0)
+                                        local id = v.id
+                                        if id and playing and maxPlayers and playing > 5 and playing < maxPlayers and id ~= JobId then
+                                            table.insert(servers, {id = id, players = playing})
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        if #servers > 0 then
+                            table.sort(servers, function(a,b) return a.players > b.players end)
+                            local target = servers[1].id
+                            TeleportService:TeleportToPlaceInstance(PlaceId, target, player)
+                        end
+                    end
+                end
+
+
+                local function checkTeamOnce()
+                    if AutoRejoin and player.Team and player.Team.Name == "Shark" then
+                        TeleportService:Teleport(PlaceId, player)
+                    end
+                end
+
+
+                serverHopOnce()
+                checkTeamOnce()
+
+
+                if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                    player.Character.HumanoidRootPart.CFrame = CFrame.new(45.66, 251.29, 112.10)
+                end
+            end
+        end)
+    end)
+end,
+function()
+    _G.Tp = false
+    task.wait(0.1)
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        player.Character.HumanoidRootPart.CFrame = CFrame.new(17.02, 285.92, -31.10)
+    end
+end)
+
+
+createButton("Farm shark",
+function()
+    _G.Shark = true
+    runOnRespawn(function()
+        spawn(function()
+            while _G.Shark do
+                task.wait(1)
+                if _G.SharkClone and _G.SharkClone.Parent then
+                    _G.SharkClone:Destroy()
+                end
+
+
+                local targetPos = Vector3.new(-103.03297424316406, 438.6586, 46.2111)
+                local maxDistance = 10000
+                local sharks = workspace:WaitForChild("Sharks"):GetChildren()
+                local player = game.Players.LocalPlayer
+                local char = player.Character or player.CharacterAdded:Wait()
+                local hrp = char:WaitForChild("HumanoidRootPart")
+
+
+                local closest, dist = nil, math.huge
+
+
+                for _, shark in ipairs(sharks) do
+                    if shark:IsA("Model") then
+                        local mainPart = shark.PrimaryPart or shark:FindFirstChildWhichIsA("BasePart")
+                        if mainPart then
+                            local d = (mainPart.Position - targetPos).Magnitude
+                            if d < dist and d <= maxDistance then
+                                dist = d
+                                closest = shark
+                            end
+                        end
+                    end
+                end
+
+
+                if closest then
+                    local clone = closest:Clone()
+                    clone.Parent = workspace
+                    _G.SharkClone = clone
+
+
+                    for _, part in ipairs(clone:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.Anchored = true
+                            part.CanCollide = false
+                            part.Transparency = 1
+                        end
+                    end
+
+
+                    local mainPart = clone.PrimaryPart or clone:FindFirstChildWhichIsA("BasePart")
+                    if mainPart then
+                        local offset = CFrame.new(0, 0, 0)
+                        mainPart.CFrame = hrp.CFrame * offset
+                    end
+
+
+                    spawn(function()
+                        while clone.Parent do
+                            if not closest.Parent then
+                                clone:Destroy()
+                                break
+                            end
+                            task.wait(1)
+                        end
+                    end)
+                end
+            end
+        end)
+    end)
+end,
+function()
+    _G.Shark = false
+    if _G.SharkClone and _G.SharkClone.Parent then
+        _G.SharkClone:Destroy()
+        _G.SharkClone = nil
+    end
+end)
+
+
+createButton("auto shoot",
+function()
+    _G.hit = true
+    runOnRespawn(function()
+        spawn(function()
+            while _G.hit do
+                task.wait(shootIntervalValue)
+                local gui = player:FindFirstChild("PlayerGui")
+                if gui and gui:FindFirstChild("WeaponDisplay") then
+                    local btn = gui.WeaponDisplay.Frame:FindFirstChild("ShootButton")
+                    if btn then
+                        firesignal(btn.MouseButton1Click)
+                        firesignal(btn.MouseButton1Down)
+                        firesignal(btn.MouseButton1Up)
+                        firesignal(btn.Activated)
+                        firesignal(btn.TouchTap)
+                    end
+                end
+            end
+        end)
+    end)
+end,
+function() _G.hit = false end)
+
+
+createButton("auto equip",
+function()
+    _G.hapoon = true
+    spawn(function()
+        while _G.hapoon do
+            task.wait(0.1)
+            for _, item in ipairs(player.Backpack:GetChildren()) do
+                if item:FindFirstChild("WeaponDisplay") and item.WeaponDisplay:FindFirstChild("MobileAim") then
+                    task.wait(1)
+                    if player.Character and player.Character:FindFirstChild("Humanoid") then
+                        player.Character.Humanoid:EquipTool(item)
+                    end
+                    break
+                end
+            end
+        end
+    end)
+end,
+function() _G.hapoon = false end)
+
+
+createButton("inf",
+function()
+    _G.inf = true
+    runOnRespawn(function()
+        spawn(function()
+            while _G.inf do
+                task.wait(1)
+                local aux = loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Upbolt/Hydroxide/revision/ohaux.lua"))()
+                local char = player.Character or player.CharacterAdded:Wait()
+                for _, item in ipairs(char:GetChildren()) do
+                    if item:IsA("Tool") then
+                        local localScript = item:FindFirstChildWhichIsA("LocalScript")
+                        if localScript then
+                            local closure = aux.searchClosure(localScript, "reload", 4, {"Enum","UserInputState","Cancel",Enum.UserInputState.Cancel,1,"script"})
+                            if closure then
+                                debug.setupvalue(closure, 4, 9e999)
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+    end)
+end,
+function() _G.inf = false end)
+
+
+local shootBoxLabel = Instance.new("TextLabel")
+shootBoxLabel.Size = UDim2.new(1, 0, 0, 20)
+shootBoxLabel.BackgroundTransparency = 1
+shootBoxLabel.TextColor3 = Color3.fromRGB(255,255,255)
+shootBoxLabel.Font = Enum.Font.GothamBold
+shootBoxLabel.TextSize = 14
+shootBoxLabel.Text = "Shoot Interval (sec)"
+shootBoxLabel.Parent = bodyFrame
+
+
+local shootBox = Instance.new("TextBox")
+shootBox.Size = UDim2.new(1, 0, 0, 30)
+shootBox.BackgroundColor3 = Color3.fromRGB(50,50,50)
+shootBox.TextColor3 = Color3.fromRGB(255,255,255)
+shootBox.Font = Enum.Font.Gotham
+shootBox.TextSize = 16
+shootBox.Text = tostring(shootIntervalValue)
+shootBox.ClearTextOnFocus = false
+shootBox.Parent = bodyFrame
+Instance.new("UICorner", shootBox).CornerRadius = UDim.new(0,6)
+
+
+shootBox.FocusLost:Connect(function(enterPressed)
+    local num = tonumber(shootBox.Text)
+    if num and num > 0 then
+        shootIntervalValue = num
+        saveStatus("shootInterval", num)
+    else
+        shootBox.Text = tostring(shootIntervalValue)
+    end
+end)
+
+
+local collapsed = false
+local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+toggleButton.MouseButton1Click:Connect(function()
+    collapsed = not collapsed
+    local targetSize = collapsed and UDim2.new(0, 220, 0, 40) or UDim2.new(0, 220, 0, 440)
+    TweenService:Create(mainFrame, tweenInfo, {Size = targetSize}):Play()
+    bodyFrame.Visible = not collapsed
+end)
+
+
+local dragging, dragInput, startPos, startPosFrame = false, nil, nil, nil
+local function startDrag(input)
+    dragging = true
+    startPos = input.Position
+    startPosFrame = mainFrame.Position
+    input.Changed:Connect(function()
+        if input.UserInputState == Enum.UserInputState.End then dragging = false end
+    end)
+end
+header.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        startDrag(input)
+    end
+end)
+header.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input == dragInput then
+        local delta = input.Position - startPos
+        local newX = math.clamp(startPosFrame.X.Offset + delta.X, 0, workspace.CurrentCamera.ViewportSize.X - mainFrame.Size.X.Offset)
+        local newY = math.clamp(startPosFrame.Y.Offset + delta.Y, 0, workspace.CurrentCamera.ViewportSize.Y - mainFrame.Size.Y.Offset)
+        mainFrame.Position = UDim2.new(0, newX, 0, newY)
+    end
+end)
+
+
+createButton("Shark Kill",
+function()
+    _G.SharkKill = true
+    runOnRespawn(function()
+        spawn(function()
+            local swapIndex = 1
+            while _G.SharkKill do
+                task.wait(0.5)
+                local player = game.Players.LocalPlayer
+                if player.Team and player.Team.Name == "Shark" then
+                    local char = player.Character or player.CharacterAdded:Wait()
+                    local hrp = char:WaitForChild("HumanoidRootPart")
+                    local sharks = workspace:WaitForChild("Sharks"):GetChildren()
+                    local validSharks = {}
+                    for _, shark in ipairs(sharks) do
+                        if shark:IsA("Model") then
+                            local mainPart = shark.PrimaryPart or shark:FindFirstChildWhichIsA("BasePart")
+                            if mainPart and (mainPart.Position - hrp.Position).Magnitude <= 10000 then
+                                table.insert(validSharks, shark)
+                            end
+                        end
+                    end
+                    if #validSharks > 0 then
+                        swapIndex = ((swapIndex - 1) % #validSharks) + 1
+                        local shark = validSharks[swapIndex]
+                        local teeth = shark:FindFirstChild("half a shark teeth")
+                        if teeth and teeth:IsA("BasePart") then
+                            for _, plr in ipairs(game.Players:GetPlayers()) do
+                                if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+                                    plr.Character.HumanoidRootPart.CFrame = teeth.CFrame
+                                end
+                            end
+                        end
+                        swapIndex = swapIndex + 1
+                    end
+                end
+            end
+        end)
+    end)
+end,
+function()
+    _G.SharkKill = false
+end)
