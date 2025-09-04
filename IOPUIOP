@@ -39,7 +39,7 @@ screenGui.ResetOnSpawn = false
 
 
 local mainFrame = Instance.new("Frame")
-mainFrame.Size = UDim2.new(0, 220, 0, 420)
+mainFrame.Size = UDim2.new(0, 220, 0, 440)
 mainFrame.Position = UDim2.new(0, 50, 0, 50)
 mainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
 mainFrame.BorderSizePixel = 0
@@ -408,7 +408,7 @@ local collapsed = false
 local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
 toggleButton.MouseButton1Click:Connect(function()
     collapsed = not collapsed
-    local targetSize = collapsed and UDim2.new(0, 220, 0, 40) or UDim2.new(0, 220, 0, 420)
+    local targetSize = collapsed and UDim2.new(0, 220, 0, 40) or UDim2.new(0, 220, 0, 440)
     TweenService:Create(mainFrame, tweenInfo, {Size = targetSize}):Play()
     bodyFrame.Visible = not collapsed
 end)
