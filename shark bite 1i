@@ -254,79 +254,80 @@ function()
 end)
 
 -- Shark
+-- Shark
 createButton("Shark",
 function()
     _G.Shark = true
     runOnRespawn(function()
         spawn(function()
             while _G.Shark do
-                task.wait(0)
-                local char = player.Character
-                if char and char:FindFirstChild("HumanoidRootPart") then
-                    local hrp = char.HumanoidRootPart
-                    local camera = workspace.CurrentCamera
+                task.wait(1)
+                if _G.SharkClone and _G.SharkClone.Parent then
+                    _G.SharkClone:Destroy()
+                end
 
-                    -- ลบ clone เก่าก่อน
-                    if _G.SharkClone and _G.SharkClone.Parent then
-                        _G.SharkClone:Destroy()
-                    end
+                local targetPos = Vector3.new(-103.03297424316406, 438.6586, 46.2111)
+                local maxDistance = 10000
+                local sharks = workspace:WaitForChild("Sharks"):GetChildren()
+                local player = game.Players.LocalPlayer
+                local char = player.Character or player.CharacterAdded:Wait()
+                local hrp = char:WaitForChild("HumanoidRootPart")
 
-                    local targetPos = Vector3.new(-103.03297424316406, 438.6586, 46.2111)
-                    local maxDistance = 10000
-                    local sharks = workspace:WaitForChild("Sharks"):GetChildren()
+                local closest, dist = nil, math.huge
 
-                    local closest, dist = nil, math.huge
-
-                    for _, shark in ipairs(sharks) do
-                        if shark:IsA("Model") then
-                            local mainPart = shark.PrimaryPart or shark:FindFirstChildWhichIsA("BasePart")
-                            if mainPart then
-                                local d = (mainPart.Position - targetPos).Magnitude
-                                if d < dist and d <= maxDistance then
-                                    dist = d
-                                    closest = shark
-                                end
-                            end
-                        end
-                    end
-
-                    if closest then
-                        local clone = closest:Clone()
-                        clone.Parent = workspace
-                        _G.SharkClone = clone
-
-                        -- ปลด Anchored ทุก Part
-                        for _, part in ipairs(clone:GetDescendants()) do
-                            if part:IsA("BasePart") then
-                                part.Anchored = true
-                            end
-                        end
-
-                        local mainPart = clone.PrimaryPart or clone:FindFirstChildWhichIsA("BasePart")
+                for _, shark in ipairs(sharks) do
+                    if shark:IsA("Model") then
+                        local mainPart = shark.PrimaryPart or shark:FindFirstChildWhichIsA("BasePart")
                         if mainPart then
-                            local offset = CFrame.new(0, 0, -1)
-                            mainPart.CFrame = hrp.CFrame * offset
-
-                            -- ให้เราหันไปมอง clone
-                            hrp.CFrame = CFrame.new(hrp.Position, mainPart.Position)
-                        end
-
-                        spawn(function()
-                            while clone.Parent do
-                                if not closest.Parent then
-                                    clone:Destroy()
-                                    break
-                                end
-                                task.wait(1)
+                            local d = (mainPart.Position - targetPos).Magnitude
+                            if d < dist and d <= maxDistance then
+                                dist = d
+                                closest = shark
                             end
-                        end)
+                        end
                     end
+                end
+
+                if closest then
+                    local clone = closest:Clone()
+                    clone.Parent = workspace
+                    _G.SharkClone = clone -- เก็บ global
+
+                    for _, part in ipairs(clone:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.Anchored = true
+                            part.CanCollide = false  -- ทะลุ
+                            part.Transparency = 1    -- ล่องหน
+                        end
+                    end
+
+                    local mainPart = clone.PrimaryPart or clone:FindFirstChildWhichIsA("BasePart")
+                    if mainPart then
+                        local offset = CFrame.new(0, 0, 0)
+                        mainPart.CFrame = hrp.CFrame * offset
+                    end
+
+                    spawn(function()
+                        while clone.Parent do
+                            if not closest.Parent then
+                                clone:Destroy()
+                                break
+                            end
+                            task.wait(1)
+                        end
+                    end)
                 end
             end
         end)
     end)
 end,
-function() _G.Shark = false end)
+function()
+    _G.Shark = false
+    if _G.SharkClone and _G.SharkClone.Parent then
+        _G.SharkClone:Destroy()
+        _G.SharkClone = nil
+    end
+end)
 
 -- Auto shoot
 createButton("auto shoot",
