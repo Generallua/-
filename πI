@@ -190,15 +190,13 @@ function()
 
 
                 local function checkTeamOnce()
-                    if AutoRejoin and player.Team and player.Team.Name == "ii" then
+                    if AutoRejoin and player.Team and player.Team.Name == "Shark" then
                         TeleportService:Teleport(PlaceId, player)
                     end
                 end
 
 
-                serverHopOnce()
-                checkTeamOnce()
-
+                
 
                 if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                     player.Character.HumanoidRootPart.CFrame = CFrame.new(45.66, 251.29, 112.10)
@@ -485,4 +483,7 @@ function()
 end,
 function()
     _G.SharkKill = false
+serverHopOnce()
+checkTeamOnce()
+
 end)
